@@ -2,7 +2,7 @@ import logging
 import os
 
 import torch
-import torchvision.utils as vutils
+from torchvision.utils import save_image
 from tensorboardX import SummaryWriter
 
 
@@ -23,8 +23,17 @@ class Trainer:
         epoch_loss = 0
 
         for batch_idx, (data, _) in enumerate(self.train_loader):
-            # TODO your code here
-            train_loss = None
+            
+            # TODO your code here : start
+            data = data.to(self.device)
+            self.optimizer.zero_grad()
+            reconstructed_data, mu, logvar = self.model(data)
+            
+            loss = self.loss_function(reconstructed_data, data, mu, logvar)
+            loss.backward()
+            train_loss = loss.item()           
+            # TODO your code here : end
+            
             epoch_loss += train_loss
             norm_train_loss = train_loss / len(data)
 
@@ -45,6 +54,8 @@ class Trainer:
                                        global_step=batches_per_epoch_train * epoch + batch_idx)
 
         epoch_loss /= len(self.train_loader.dataset)
+        print(f'====> Epoch: {epoch} Average loss: {epoch_loss:.4f}')
+
         logging.info(f'====> Epoch: {epoch} Average loss: {epoch_loss:.4f}')
         self.writer.add_scalar(tag='data/train_epoch_loss',
                                scalar_value=epoch_loss,
@@ -55,9 +66,13 @@ class Trainer:
         test_epoch_loss = 0
 
         for batch_idx, (data, _) in enumerate(self.test_loader):
-            # TODO your code here
-
-            test_loss = None
+            # TODO your code here : start
+            data = data.to(self.device)
+            reconstructed_data, mu, logvar = self.model(data)
+            
+            loss = self.loss_function(reconstructed_data, data, mu, logvar)
+            test_loss = loss.item()
+            # TODO your code here : end
             test_epoch_loss += test_loss
 
             if batch_idx % log_interval == 0:
@@ -81,8 +96,13 @@ class Trainer:
         self.plot_generated(epoch, batch_size)
 
     def plot_generated(self, epoch, batch_size):
-        # TODO your code here
-        pass
+        # TODO your code here : start
+        random_noise = torch.randn(batch_size, self.model.get_latent_size())
+        decoded = self.model.decode(random_noise)
+
+        save_image(decoded.view(batch_size, 1, self.model.get_image_size(), self.model.get_image_size()),
+                   'fashionMNIST-results/result_No_' + str(epoch) + '.png')
+        # TODO your code here : end
 
     def save(self, checkpoint_path):
         dir_name = os.path.dirname(checkpoint_path)

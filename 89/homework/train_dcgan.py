@@ -7,8 +7,8 @@ import torchvision.datasets as datasets
 from torch.optim import Adam
 from torchvision import transforms
 
-from homework.dcgan import DCGenerator, DCDiscriminator
-from homework.dcgan import DCGANTrainer
+import homework.dcgan.dcgan as dcgan
+import homework.dcgan.trainer as DCtrainer
 
 
 def get_config():
@@ -23,7 +23,7 @@ def get_config():
                         help='input batch size for training')
     parser.add_argument('--epochs', type=int, default=30,
                         help='number of epochs to train ')
-    parser.add_argument('--image-size', type=int, default=32,
+    parser.add_argument('--image-size', type=int, default=6,
                         help='size of images to generate')
     parser.add_argument('--n_show_samples', type=int, default=8)
     parser.add_argument('--show_img_every', type=int, default=10)
@@ -46,15 +46,17 @@ def main():
 
     transform = transforms.Compose([transforms.Scale(config.image_size), transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
     dataset = datasets.CIFAR10(root=config.data_root, download=True,
                                transform=transform)
+
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=config.batch_size, shuffle=True,
                                              num_workers=4, pin_memory=True)
 
-    discriminator, generator = DCDiscriminator(config.image_size), DCGenerator(config.image_size)
+    discriminator, generator = dcgan.DCDiscriminator(config.image_size), dcgan.DCGenerator(config.image_size)
 
-    trainer = DCGANTrainer(generator=generator, discriminator=discriminator,
-                           optimizer_d=Adam(discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999)),
+    trainer = DCtrainer.DCGANTrainer(generator=generator, discriminator=discriminator,
+                                     optimizer_d=Adam(discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999)),
                            optimizer_g=Adam(generator.parameters(), lr=0.0002, betas=(0.5, 0.999)),
                            metrics_dir='metrics')
 

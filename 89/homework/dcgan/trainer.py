@@ -9,19 +9,19 @@ import torch.utils.data
 import torchvision.utils as vutils
 from tensorboardX import SummaryWriter
 
-from homework import metric
+import metric
 
 
 class DCGANTrainer:
 
     def __init__(self, discriminator, generator, optimizer_d, optimizer_g, latent_size=100,
-                 device='cuda', metrics_dir='metrics', save_root='ckpt', log_dir=None):
+                 device="cuda:0", metrics_dir='metrics', save_root='ckpt', log_dir=None):
         self.net_g = generator
         self.net_d = discriminator
         self.optimizer_d = optimizer_d
         self.optimizer_g = optimizer_g
         self.latent_size = latent_size
-        self.device = device
+        self.device = device#torch.device("cuda")#
 
         self.metric_dir = metrics_dir
         self.save_root = save_root

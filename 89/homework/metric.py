@@ -29,7 +29,7 @@ def sampleFake(netG, nz, sampleSize, batchSize, saveFolder):
     except OSError:
         pass
 
-    noise = torch.FloatTensor(batchSize, nz, 1, 1).cuda()
+    noise = torch.FloatTensor(batchSize, nz, 1, 1)
     iter = 0
     for i in range(0, 1 + sampleSize // batchSize):
         noise.data.normal_(0, 1)
@@ -118,7 +118,7 @@ class ConvNetFeatureSaver(object):
         self.batch_size = batchSize
         self.workers = workers
         if self.model.find('vgg') >= 0:
-            self.vgg = getattr(models, model)(pretrained=True).cuda().eval()
+            self.vgg = getattr(models, model)(pretrained=True).eval()
             self.trans = transforms.Compose([
                 transforms.Resize(224),
                 transforms.ToTensor(),
@@ -127,12 +127,12 @@ class ConvNetFeatureSaver(object):
             ])
         elif self.model.find('resnet') >= 0:
             resnet = getattr(models, model)(pretrained=True)
-            resnet.cuda().eval()
+            resnet.eval()
             resnet_feature = nn.Sequential(resnet.conv1, resnet.bn1,
                                            resnet.relu,
                                            resnet.maxpool, resnet.layer1,
                                            resnet.layer2, resnet.layer3,
-                                           resnet.layer4).cuda().eval()
+                                           resnet.layer4).eval()
             self.resnet = resnet
             self.resnet_feature = resnet_feature
             self.trans = transforms.Compose([
@@ -143,7 +143,7 @@ class ConvNetFeatureSaver(object):
             ])
         elif self.model == 'inception' or self.model == 'inception_v3':
             inception = models.inception_v3(
-                pretrained=True, transform_input=False).cuda().eval()
+                pretrained=True, transform_input=False).eval()
             inception_feature = nn.Sequential(inception.Conv2d_1a_3x3,
                                               inception.Conv2d_2a_3x3,
                                               inception.Conv2d_2b_3x3,
@@ -161,7 +161,7 @@ class ConvNetFeatureSaver(object):
                                               inception.Mixed_7a,
                                               inception.Mixed_7b,
                                               inception.Mixed_7c,
-                                              ).cuda().eval()
+                                              ).eval()
             self.inception = inception
             self.inception_feature = inception_feature
             self.trans = transforms.Compose([
@@ -180,7 +180,7 @@ class ConvNetFeatureSaver(object):
         feature_pixl, feature_conv, feature_smax, feature_logit = [], [], [], []
         for img, _ in dataloader:
             with torch.no_grad():
-                input = img.cuda()
+                input = img
                 if self.model == 'vgg' or self.model == 'vgg16':
                     fconv = self.vgg.features(input).view(input.size(0), -1)
                     flogit = self.vgg.classifier(fconv)
@@ -221,9 +221,9 @@ class ConvNetFeatureSaver(object):
 def distance(X, Y, sqrt):
     nX = X.size(0)
     nY = Y.size(0)
-    X = X.view(nX, -1).cuda()
+    X = X.view(nX, -1)
     X2 = (X * X).sum(1).resize_(nX, 1)
-    Y = Y.view(nY, -1).cuda()
+    Y = Y.view(nY, -1)
     Y2 = (Y * Y).sum(1).resize_(nY, 1)
 
     M = torch.zeros(nX, nY)

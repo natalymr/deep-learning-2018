@@ -9,6 +9,7 @@ class VAE(nn.Module):
                  latent_size=20, dec_hidden=400):
         super().__init__()
         self.latent_size = latent_size
+        self.image_size = image_size
 
         self.fc1 = nn.Linear(image_size * image_size, enc_hidden)
         self.fc21 = nn.Linear(enc_hidden, latent_size)
@@ -42,6 +43,14 @@ class VAE(nn.Module):
             mu, logvar = self.encode(x.view(-1, 784))
             z = self.reparameterize(mu, logvar)
         return z
+
+    @property
+    def get_latent_size(self) -> int :
+        return self.latent_size
+
+    @property
+    def get_image_size(self) -> int:
+        return self.image_size
 
 
 def loss_function(recon_x, x, mu, logvar):
